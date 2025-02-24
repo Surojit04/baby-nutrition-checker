@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Tracker - Baby Nutrition Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.95);
+            --hover-bg: rgba(255, 255, 255, 1);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            --text-color: #333333;
+            --primary-color: #ff6b6b;
+            --secondary-color: #fdbb2d;
+        }
+
+        [data-theme="dark"] {
+            --primary-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            --card-bg: rgba(45, 45, 45, 0.9);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(30, 30, 30, 0.95);
+            --hover-bg: rgba(50, 50, 50, 1);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --text-color: #ffffff;
+            --primary-color: #ff8a8a;
+            --secondary-color: #ffd15c;
+        }
+
+        /* Override navbar styles for nutrition tracker */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        [data-theme="dark"] .navbar {
+            background: #1a1a1a;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar .logo span,
+        .navbar .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar .nav-links a:hover,
+        .navbar .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        .hamburger span {
+            background-color: var(--text-color);
+        }
+
+        body {
+            background: var(--primary-gradient);
+            min-height: 100vh;
+        }
+
+        .tracker-container {
+            max-width: 900px;
+            margin: 6rem auto 2rem;
+            padding: 2.5rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            border: 1px solid var(--card-border);
+            animation: fadeInScale 0.6s ease-out;
+        }
+
+        .section-heading {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .heading-icon {
+            display: inline-block;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            animation: pulseIcon 2s infinite;
+        }
+
+        .animated-heading {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: var(--text-shadow);
+            opacity: 0;
+            animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .highlight-text {
+            color: var(--primary-color);
+            font-weight: 700;
+            position: relative;
+            margin-left: 0.5rem;
+        }
+
+        .highlight-text::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary-color);
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: expandWidth 0.6s ease-out forwards 0.6s;
+        }
+
+        .heading-description {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 1.5rem auto;
+            opacity: 0.9;
+            animation: slideInRight 0.6s ease-out forwards;
+        }
+
+        .heading-decoration {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .decoration-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0;
+            animation: bounceIn 0.6s ease-out forwards;
+        }
+
+        .decoration-line {
+            width: 60px;
+            height: 2px;
+            background: var(--primary-color);
+            opacity: 0.6;
+        }
+
+        @keyframes pulseIcon {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes expandWidth {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            padding: 2.5rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .input-group {
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+            padding: 1rem;
+            background: var(--input-bg);
+            border-radius: 15px;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .input-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.2rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .input-group label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 1.2rem;
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(var(--text-color), 0.6);
+        }
+
+        .foods-section {
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 20px;
+            margin: 3rem 0;
+            animation: fadeInUp 0.8s ease-out;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+
+        .foods-section h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            text-shadow: var(--text-shadow);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .foods-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+
+        .foods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .food-item {
+            position: relative;
+            padding: 1.2rem;
+            border-radius: 15px;
+            background: var(--input-bg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--card-border);
+        }
+
+        .food-item:hover {
+            transform: translateY(-5px);
+            background: var(--hover-bg);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .food-item label {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .food-item i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .food-item input[type="checkbox"]:checked + label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .food-item input[type="checkbox"]:checked + label i {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        .analyze-btn {
+            display: block;
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(45deg, var(--primary-color), #ff9a67);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 107, 0, 0.4);
+        }
+
+        .analyze-btn:hover::before {
+            left: 100%;
+        }
+
+        .analyze-btn i {
+            margin-right: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        .result-card {
+            display: none;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-top: 3rem;
+            border: 1px solid var(--card-border);
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .result-card h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: var(--text-shadow);
+        }
+
+        .nutrient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .nutrient-item {
+            background: var(--input-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--card-border);
+        }
+
+        .nutrient-item:hover {
+            transform: translateY(-5px);
+            background: var(--hover-bg);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .nutrient-item h3 {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .nutrient-item p {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .locality-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .locality-option {
+            flex: 1;
+            position: relative;
+            padding: 1.2rem;
+            border-radius: 12px;
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--card-border);
+            overflow: hidden;
+        }
+
+        .locality-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            border-color: var(--primary-color);
+        }
+
+        .locality-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .locality-option input[type="radio"]:checked + label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .locality-option input[type="radio"]:checked + label i {
+            transform: scale(1.2);
+            color: var(--primary-color);
+        }
+
+        .locality-option input[type="radio"]:checked ~ .locality-option {
+            border-color: var(--primary-color);
+            background: var(--hover-bg);
+        }
+
+        /* Add new styles for better selection visibility */
+        .locality-option input[type="radio"]:checked + label::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 25px;
+            height: 25px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .locality-option input[type="radio"]:checked {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .locality-option input[type="radio"]:checked + label {
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 10px;
+            padding: 0.5rem;
+        }
+
+        .locality-option label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            margin: 0;
+            position: relative;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .locality-option i {
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Add a subtle background effect for selected option */
+        .locality-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
+            box-shadow: inset 0 0 10px rgba(255, 107, 107, 0.1);
+        }
+
+        /* Add a border highlight effect */
+        .locality-option input[type="radio"]:checked + label::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            animation: borderPulse 2s infinite;
+        }
+
+        @keyframes borderPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .input-group {
+                padding: 0.8rem;
+            }
+
+            .locality-group {
+                flex-direction: column;
+            }
+
+            .locality-option {
+                width: 100%;
+            }
+
+            .locality-option input[type="radio"]:checked + label::after {
+                top: 50%;
+                right: 10px;
+                transform: translateY(-50%);
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background: var(--card-bg);
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem 0;
+                transition: left 0.3s ease;
+            }
+
+            .nav-links.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: block;
+            }
+        }
+
+        /* Replace the existing glow animation styles with full-screen flash effect */
+        @keyframes screenFlash {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.15;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .glow-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            pointer-events: none;
+            z-index: 9999;
+            animation: screenFlash 0.5s ease-out forwards;
+        }
+
+        /* Add celebration animation styles */
+        @keyframes celebrate {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .celebration-message {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            animation: celebrate 0.6s ease-out forwards;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .celebration-message::before,
+        .celebration-message::after {
+            content: '🎉';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            animation: bounce 1s ease infinite;
+        }
+
+        .celebration-message::before {
+            left: -40px;
+        }
+
+        .celebration-message::after {
+            right: -40px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            position: absolute;
+            animation: confetti 3s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+ 
+     <!-- Navigation Menu -->
+     <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-baby"></i>
+            <span>Baby Nutrition Tracker</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="nutrition-tracker.html" class="active">Nutrition Tracker</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <button id="themeToggle" class="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <div class="tracker-container">
+        <div class="section-heading">
+            <span class="heading-icon"><i class="fas fa-chart-pie"></i></span>
+            <h2 class="animated-heading">
+                <span class="gradient-text">Nutrition</span>
+                <span class="highlight-text">Tracker</span>
+            </h2>
+            <p class="heading-description">Track and analyze your child's nutritional intake with our smart assessment tool. Get personalized insights and recommendations for a healthier future.</p>
+            <div class="heading-decoration">
+                <div class="decoration-line"></div>
+                <div class="decoration-dot"></div>
+                <div class="decoration-dot"></div>
+                <div class="decoration-dot"></div>
+                <div class="decoration-line"></div>
+            </div>
+        </div>
+
+        <form id="nutritionForm">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="name">Child's Name</label>
+                    <input type="text" id="name" required placeholder="Enter your child's name">
+                </div>
+
+                <div class="input-group">
+                    <label for="age">Child's Age</label>
+                    <select id="age" required>
+                        <option value="">Select age</option>
+                        <option value="1">1 Year</option>
+                        <option value="2">2 Years</option>
+                        <option value="3">3 Years</option>
+                        <option value="4">4 Years</option>
+                        <option value="5">5 Years</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Locality</label>
+                    <div class="locality-group">
+                        <div class="locality-option">
+                            <input type="radio" id="urban" name="locality" value="Urban" required>
+                            <label for="urban">
+                                <i class="fas fa-city"></i>
+                                Urban
+                            </label>
+                        </div>
+                        <div class="locality-option">
+                            <input type="radio" id="rural" name="locality" value="Rural" required>
+                            <label for="rural">
+                                <i class="fas fa-tree"></i>
+                                Rural
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="foods-section">
+                <h2>Select Foods</h2>
+                <div class="foods-grid">
+                    <div class="food-item">
+                        <input type="checkbox" id="milk" name="foods" value="MILK">
+                        <label for="milk">
+                            <i class="fas fa-glass-milk"></i>
+                            Milk
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="rice" name="foods" value="RICE">
+                        <label for="rice">
+                            <i class="fas fa-bowl-rice"></i>
+                            Rice
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="bread" name="foods" value="BREAD">
+                        <label for="bread">
+                            <i class="fas fa-bread-slice"></i>
+                            Bread
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="egg" name="foods" value="EGG">
+                        <label for="egg">
+                            <i class="fas fa-egg"></i>
+                            Egg
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="fish" name="foods" value="FISH">
+                        <label for="fish">
+                            <i class="fas fa-fish"></i>
+                            Fish
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="chicken" name="foods" value="CHICKEN">
+                        <label for="chicken">
+                            <i class="fas fa-drumstick-bite"></i>
+                            Chicken
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="fruit" name="foods" value="FRUIT">
+                        <label for="fruit">
+                            <i class="fas fa-apple-alt"></i>
+                            Fruit
+                        </label>
+                    </div>
+                    <div class="food-item">
+                        <input type="checkbox" id="vegetables" name="foods" value="VEGETABLES">
+                        <label for="vegetables">
+                            <i class="fas fa-carrot"></i>
+                            Vegetables
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="analyze-btn" onclick="analyzeNutrition()">
+                <i class="fas fa-chart-bar"></i>
+                Analyze Nutrition
+            </button>
+        </form>
+
+        <div id="result" class="result-card">
+            <h2 id="resultName"></h2>
+            <div id="nutrientResults" class="nutrient-grid"></div>
+            <p id="nutritionStatus" class="status-message"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Baby Nutrition Tracker. All rights reserved.</p>
+    </footer>
+
+    <button id="scrollToTop" class="scroll-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+
+        // Check for saved theme preference or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        function analyzeNutrition() {
+            const name = document.getElementById("name").value;
+            const age = document.getElementById("age").value;
+            const localityRadios = document.getElementsByName("locality");
+            let locality = "";
+            
+            // Get selected locality
+            for (let radio of localityRadios) {
+                if (radio.checked) {
+                    locality = radio.value;
+                    break;
+                }
+            }
+            
+            if (!name || !age || !locality) {
+                alert("Please fill in all required fields!");
+                return;
+            }
+
+            const selectedFoods = Array.from(document.querySelectorAll('input[name="foods"]:checked')).map(el => el.value);
+
+            if (selectedFoods.length === 0) {
+                alert("Please select at least one food item!");
+                return;
+            }
+
+            const NUTRIENT_DATA = {
+                'MILK': ['VITAMIN D', 'VITAMIN B12', 'CALCIUM'],
+                'RICE': ['VITAMIN B12'],
+                'BREAD': ['IRON', 'VITAMIN B12'],
+                'VEGETABLES': ['VITAMIN A', 'VITAMIN C', 'VITAMIN K'],
+                'EGG': ['VITAMIN B12', 'VITAMIN D', 'VITAMIN A', 'IRON', 'ZINC'],
+                'FISH': ['VITAMIN D', 'VITAMIN B12', 'ZINC'],
+                'CHICKEN': ['VITAMIN B12', 'ZINC'],
+                'FRUIT': ['VITAMIN C', 'VITAMIN A']
+            };
+
+            const nutritionalColumns = ['CALCIUM', 'IRON', 'VITAMIN A', 'VITAMIN B12', 'VITAMIN C', 'VITAMIN D', 'VITAMIN K', 'ZINC'];
+            let results = {};
+            nutritionalColumns.forEach(nutrient => results[nutrient] = 'NO');
+
+            selectedFoods.forEach(food => {
+                if (NUTRIENT_DATA[food]) {
+                    NUTRIENT_DATA[food].forEach(nutrient => results[nutrient] = 'YES');
+                }
+            });
+
+            let yesCount = Object.values(results).filter(value => value === 'YES').length;
+
+            document.getElementById("resultName").innerHTML = `Nutritional Analysis for ${name} (${age} years old from ${locality})`;
+            let nutrientResults = document.getElementById("nutrientResults");
+            nutrientResults.innerHTML = "";
+
+            for (const [nutrient, status] of Object.entries(results)) {
+                let div = document.createElement("div");
+                div.className = "nutrient-item";
+                div.innerHTML = `
+                    <h3>${nutrient}</h3>
+                    <p style="color: ${status === 'YES' ? 'var(--primary-color)' : '#f44336'}">${status}</p>
+                `;
+                nutrientResults.appendChild(div);
+            }
+
+            let nutritionStatus = document.getElementById("nutritionStatus");
+            if (yesCount >= 5) {
+                nutritionStatus.innerHTML = `
+                    <div class="celebration-message">
+                        Excellent! Your Baby is Receiving Proper Nutrition! 
+                        <div style="font-size: 1.2rem; margin-top: 1rem;">
+                            Keep up the great work in providing a balanced diet! 🌟
+                        </div>
+                    </div>
+                `;
+                // Create confetti effect
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 5000);
+                }
+            } else {
+                nutritionStatus.innerHTML = `
+                    <div style="color: #f44336; font-size: 1.4rem; text-align: center; padding: 1rem;">
+                        <i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i>
+                        Your baby needs more nutritional variety in their diet
+                        <div style="font-size: 1.1rem; margin-top: 0.5rem; opacity: 0.9;">
+                            Consider adding more diverse foods to ensure balanced nutrition 🥗
+                        </div>
+                    </div>
+                `;
+            }
+
+            const resultCard = document.getElementById("result");
+            resultCard.style.display = "block";
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+
+            // Save data to Google Sheets
+            fetch("https://script.google.com/macros/s/AKfycbxeox7DY-1nnRZC5syKNFSRAgCoz4R6aXyiN3GTEbVlEDUKHbDIBf_igBRhKQDb2qw/exec", {
+                method: "POST",
+                body: JSON.stringify({ 
+                    name, 
+                    locality, 
+                    age, 
+                    foods: selectedFoods,
+                    nutritionStatus: yesCount >= 5 ? "Proper" : "Improper",
+                    nutrients: results
+                }),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.text())
+            .then(data => console.log("Data saved:", data))
+            .catch(error => console.error("Error:", error));
+        }
+
+        // Add click animation for locality options
+        document.querySelectorAll('.locality-option input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function(e) {
+                createGlowEffect(e);
+            });
+        });
+
+        // Add click animation for food items
+        document.querySelectorAll('.food-item input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function(e) {
+                createGlowEffect(e);
+                const label = this.nextElementSibling;
+                if (this.checked) {
+                    label.style.transform = 'scale(1.1)';
+                    setTimeout(() => label.style.transform = 'scale(1)', 200);
+                }
+            });
+        });
+
+        // Function to create glow effect
+        function createGlowEffect(e) {
+            const glow = document.createElement('div');
+            glow.className = 'glow-effect';
+            document.body.appendChild(glow);
+            
+            // Remove after animation
+            glow.addEventListener('animationend', () => {
+                glow.remove();
+            });
+        }
+    </script>
+</body>
+</html>
+

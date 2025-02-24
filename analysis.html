@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutritional Analysis Results</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --background-gradient-start: #ffe2b7;
+            --background-gradient-end: #fcb69f;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --title-color: #ff6b6b;
+            --subtitle-color: #fdbb2d;
+            --item-background: #ffffff;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+        }
+
+        [data-theme="dark"] {
+            --background-gradient-start: #2d3436;
+            --background-gradient-end: #1e272e;
+            --card-background: #2d2d2d;
+            --text-color: #ffffff;
+            --title-color: #ff8a8a;
+            --subtitle-color: #ffd15c;
+            --item-background: #3d3d3d;
+            --success-color: #81c784;
+            --error-color: #e57373;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--background-gradient-start) 0%, var(--background-gradient-end) 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .card {
+            background: var(--card-background);
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--title-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--subtitle-color);
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin: 20px 0;
+        }
+
+        .nutrient-list {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+        }
+
+        .nutrient-item {
+            background: var(--item-background);
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .status-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 25px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .back-btn, .download-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .back-btn {
+            background: #ff9f67;
+        }
+
+        .download-btn {
+            background: #4CAF50;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover, .download-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .back-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 159, 103, 0.3);
+        }
+
+        .download-btn:hover {
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        @media print {
+            .theme-toggle, .button-container {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="themeToggle" class="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="card" id="pdf-content">
+        <h1>Nutritional Analysis for {{ name }}</h1>
+        <h2>{{ age }} Year-Old Baby ({{ locality }})</h2>
+        
+        <ul class="nutrient-list">
+            {% for nutrient, status in results.items() %}
+                <li class="nutrient-item">
+                    {{ nutrient }}: {{ status }}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <p id="nutritionStatus" class="status-message"></p>
+
+        <div class="button-container">
+            <a href="/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </a>
+            <button onclick="downloadPDF()" class="download-btn">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+
+        // Check for saved theme preference or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        // Count YES responses and update nutrition status
+        function updateNutritionStatus() {
+            const nutrientItems = document.querySelectorAll('.nutrient-item');
+            let yesCount = 0;
+            
+            nutrientItems.forEach(item => {
+                if (item.textContent.includes('YES')) {
+                    yesCount++;
+                }
+            });
+
+            const statusElement = document.getElementById('nutritionStatus');
+            if (yesCount >= 5) {
+                statusElement.style.color = '#4caf50';
+                statusElement.innerHTML = '<strong>The baby is receiving proper nutrition.</strong>';
+            } else {
+                statusElement.style.color = '#f44336';
+                statusElement.innerHTML = '<strong>The baby is not receiving proper nutrition.</strong>';
+            }
+        }
+
+        // PDF Download Function
+        function downloadPDF() {
+            // PDF options
+            const options = {
+                margin: 1,
+                filename: 'nutrition-analysis.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Get the element
+            const element = document.getElementById('pdf-content');
+
+            // Create a clone of the element to modify for PDF
+            const pdfElement = element.cloneNode(true);
+            
+            // Remove the button container from the PDF
+            const buttonContainer = pdfElement.querySelector('.button-container');
+            if (buttonContainer) {
+                buttonContainer.remove();
+            }
+
+            // Generate PDF
+            html2pdf()
+                .set(options)
+                .from(pdfElement)
+                .save()
+                .catch(err => console.error('Error generating PDF:', err));
+        }
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', updateNutritionStatus);
+    </script>
+</body>
+</html> 
